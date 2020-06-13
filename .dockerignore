@@ -2,4 +2,10 @@
 LICENSE
 Dockerfile
 README.md
-
+.env
+/samples
+/output
+app.log
+dummy.txt
+gitclean.bat
+LICENSE
