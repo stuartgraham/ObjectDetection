@@ -1,0 +1,7 @@
+/samples
+/output
+.env
+*.weights
+dummy.txt
+gitclean.bat
+app.log
