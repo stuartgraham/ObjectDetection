@@ -17,8 +17,8 @@ import logging
 CONFIG = os.environ.get('CONFIG','')
 WEIGHTS = os.environ.get('WEIGHTS','')
 CLASSES = os.environ.get('CLASSES','')
-INPUT_PATH = os.environ.get('INPUT_PATH','output')
-OUTPUT_PATH = os.environ.get('OUTPUT_PATH','samples')
+INPUT_PATH = os.environ.get('INPUT_PATH','input')
+OUTPUT_PATH = os.environ.get('OUTPUT_PATH','output')
 MQTT_BROKER = os.environ.get('MQTT_BROKER','')
 MQTT_PORT = int(os.environ.get('MQTT_PATH', 1883))
 MQTT_PUB_TOPIC = os.environ.get('MQTT_PUB_TOPIC','')
@@ -67,7 +67,7 @@ def draw_prediction(img, class_id, confidence, x, y, x_plus_w, y_plus_h):
     cv2.putText(img, label, (x-10,y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
     return label
 
-def examime_image(image):
+def examine_image(image):
     global classes
     global COLORS
     os.chdir(INPUT_PATH)
@@ -139,7 +139,7 @@ def on_message(client, userdata, msg):
     if message['pathToImage']:
         image_path = message['pathToImage']
         logging.info('Received valid message, processing {}'.format(image_path))
-        examime_image(image_path)
+        examine_image(image_path)
     else:
         logging.info('Received in valid message, processing')
 

@@ -1,11 +1,9 @@
-.gitignore
-LICENSE
-Dockerfile
-README.md
-.env
 /samples
 /output
-app.log
-dummy.txt
+/models
+.env
 gitclean.bat
+*.log
+.gitignore
 LICENSE
+README.md

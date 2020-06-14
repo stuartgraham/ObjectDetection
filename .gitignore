@@ -1,7 +1,6 @@
 /samples
 /output
+/models
 .env
-*.weights
-dummy.txt
 gitclean.bat
-app.log
+*.log
