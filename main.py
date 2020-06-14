@@ -3,6 +3,7 @@ import argparse
 import numpy as np
 import os
 import paho.mqtt.client as paho
+import paho.mqtt.publish as publish
 import requests
 import json
 import logging
@@ -24,7 +25,7 @@ MQTT_PUB_TOPIC = os.environ.get('MQTT_PUB_TOPIC','')
 MQTT_SUB_TOPIC = os.environ.get('MQTT_SUB_TOPIC','')
 MODEL_WEIGHTS_URL = os.environ.get('MODEL_WEIGHTS_URL','')
 MODEL_CFG_URL = os.environ.get('MODEL_CFG_URL','')
-LOGGING = os.environ.get('LOGGING','INFO')
+
 
 #TRANFORM GLOBALS
 CONFIG = 'models/' + CONFIG
@@ -143,26 +144,23 @@ def on_message(client, userdata, msg):
         logging.info('Received in valid message, processing')
 
 # PUB MQTT
-def on_publish(client,userdata,result,rc):  
-    logging.info("Connected with result code "+str(rc))
-
 def push_mqtt_message(message):
-    client1 = paho.Client("object-detector")                        
-    client1.on_publish = on_publish                         
-    client1.connect(MQTT_BROKER, MQTT_PORT)                                
-    client1.publish(MQTT_PUB_TOPIC, json.dumps(message))           
+    publish.single(MQTT_PUB_TOPIC,
+        payload=json.dumps(message),
+        hostname=MQTT_BROKER,
+        client_id="object-detector-pub",
+        port=MQTT_PORT)
 
 def main():
-    logging.basicConfig(filename='app.log', level=logging.INFO, format='%(asctime)s %(message)s')
+    logging.basicConfig(filename='app.log', level=logging.DEBUG, format='%(asctime)s %(message)s')
     logging.info("STARTING Object Detection")
     check_model_files()
-    client = paho.Client()
-    client.on_connect = on_connect
-    client.on_message = on_message
-    client.connect(MQTT_BROKER, MQTT_PORT, 60)
-    run = True
-    while run:
-        client.loop()
+    sub_client = paho.Client("object-detector-sub")
+    sub_client.on_connect = on_connect
+    sub_client.on_message = on_message
+    sub_client.connect(MQTT_BROKER, MQTT_PORT, 60)
+    sub_client.loop_forever()
+
     
 # Main Exectution
 main()
