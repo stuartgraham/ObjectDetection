@@ -1,9 +1,4 @@
-/samples
-/output
-/models
-.env
-gitclean.bat
-*.log
 .gitignore
 LICENSE
 README.md
+Dockerfile
