@@ -7,13 +7,15 @@ import paho.mqtt.publish as publish
 import requests
 import json
 import logging
+import time
 
-# # .ENV FILE FOR TESTING
+# .ENV FILE FOR TESTING
 #if os.path.exists('.env'):
 #    from dotenv import load_dotenv
 #    load_dotenv()
 
 # GLOBALS
+TESTING = False
 CONFIG = os.environ.get('CONFIG','')
 WEIGHTS = os.environ.get('WEIGHTS','')
 CLASSES = os.environ.get('CLASSES','')
@@ -25,7 +27,6 @@ MQTT_PUB_TOPIC = os.environ.get('MQTT_PUB_TOPIC','')
 MQTT_SUB_TOPIC = os.environ.get('MQTT_SUB_TOPIC','')
 MODEL_WEIGHTS_URL = os.environ.get('MODEL_WEIGHTS_URL','')
 MODEL_CFG_URL = os.environ.get('MODEL_CFG_URL','')
-
 
 #TRANFORM GLOBALS
 CONFIG = 'models/' + CONFIG
@@ -64,7 +65,7 @@ def draw_prediction(img, class_id, confidence, x, y, x_plus_w, y_plus_h):
     label = str(classes[class_id])
     color = COLORS[class_id]
     cv2.rectangle(img, (x,y), (x_plus_w,y_plus_h), color, 2)
-    cv2.putText(img, label, (x-10,y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+    cv2.putText(img, label.upper(), (x-10,y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.75, color, 2)
     return label
 
 def examine_image(image):
@@ -110,7 +111,7 @@ def examine_image(image):
 
     indices = cv2.dnn.NMSBoxes(boxes, confidences, conf_threshold, nms_threshold)
 
-    metadata = {}
+    metadatas = []
     for i in indices:
         i = i[0]
         box = boxes[i]
@@ -119,13 +120,22 @@ def examine_image(image):
         w = box[2]
         h = box[3]
         category = draw_prediction(image, class_ids[i], confidences[i], round(x), round(y), round(x+w), round(y+h))
-        metadata = {'image': image_name, 'category': category, 'confidence': float("%0.3f" % (confidences[i]))}
+        metadatas.append({'image': image_name, 'category': category, 'confidence': float("%0.3f" % (confidences[i]))})
 
-    if metadata:
+    if metadatas:
+        #print(metadatas)
+        max_confidence = metadatas[0]
+        for i in metadatas:
+            if i['confidence'] > max_confidence['confidence']:
+                max_confidence = i
+        
+        metadata = max_confidence
         os.chdir(OUTPUT_PATH)
         cv2.imwrite(image_name, image)
+        #print(metadata)
         push_mqtt_message(metadata)
         logging.info('Image processed : {}'.format(metadata))
+        #print("#"*30)
 
 # SUB MQTT
 def on_connect(client, userdata, flags, rc):
@@ -150,6 +160,14 @@ def push_mqtt_message(message):
         client_id="object-detector-pub",
         port=MQTT_PORT)
 
+def testing():
+    start_time = time.time()
+    file_names = os.listdir(INPUT_PATH)
+    os.chdir(INPUT_PATH)
+    for file_name in file_names:
+        examine_image(file_name)
+    print("--- %s seconds ---" % (time.time() - start_time))
+
 def main():
     logging.basicConfig(filename='app.log', level=logging.INFO, format='%(asctime)s %(message)s')
     logging.info("STARTING Object Detection")
@@ -162,4 +180,7 @@ def main():
 
     
 # Main Exectution
-main()
+if TESTING == True:
+    testing()
+else:
+    main()
