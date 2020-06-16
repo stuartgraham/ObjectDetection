@@ -122,9 +122,9 @@ def examine_image(image):
         metadata = {'image': image_name, 'category': category, 'confidence': float("%0.3f" % (confidences[i]))}
 
     if metadata:
-        push_mqtt_message(metadata)
         os.chdir(OUTPUT_PATH)
         cv2.imwrite(image_name, image)
+        push_mqtt_message(metadata)
         logging.info('Image processed : {}'.format(metadata))
 
 # SUB MQTT
