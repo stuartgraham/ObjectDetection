@@ -151,7 +151,7 @@ def push_mqtt_message(message):
         port=MQTT_PORT)
 
 def main():
-    logging.basicConfig(filename='app.log', level=logging.info, format='%(asctime)s %(message)s')
+    logging.basicConfig(filename='app.log', level=logging.INFO, format='%(asctime)s %(message)s')
     logging.info("STARTING Object Detection")
     check_model_files()
     sub_client = paho.Client("object-detector-sub")
