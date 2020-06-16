@@ -120,13 +120,12 @@ def examine_image(image):
         h = box[3]
         category = draw_prediction(image, class_ids[i], confidences[i], round(x), round(y), round(x+w), round(y+h))
         metadata = {'image': image_name, 'category': category, 'confidence': float("%0.3f" % (confidences[i]))}
-        logging.info(metadata)
 
     if metadata:
         push_mqtt_message(metadata)
         os.chdir(OUTPUT_PATH)
         cv2.imwrite(image_name, image)
-        logging.info('Image processed')
+        logging.info('Image processed : {}'.format(metadata))
 
 # SUB MQTT
 def on_connect(client, userdata, flags, rc):
@@ -134,7 +133,7 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe(MQTT_SUB_TOPIC)
 
 def on_message(client, userdata, msg):
-    logging.info("Recieved message {} convert to json".format(str(msg.payload))) 
+    logging.debug("Recieved message {} convert to json".format(str(msg.payload))) 
     message = json.loads(msg.payload)
     if message['pathToImage']:
         image_path = message['pathToImage']
@@ -152,7 +151,7 @@ def push_mqtt_message(message):
         port=MQTT_PORT)
 
 def main():
-    logging.basicConfig(filename='app.log', level=logging.DEBUG, format='%(asctime)s %(message)s')
+    logging.basicConfig(filename='app.log', level=logging.info, format='%(asctime)s %(message)s')
     logging.info("STARTING Object Detection")
     check_model_files()
     sub_client = paho.Client("object-detector-sub")
